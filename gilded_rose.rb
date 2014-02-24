@@ -4,46 +4,33 @@ SULFURAS = 'Sulfuras, Hand of Ragnaros'
 
 def update_quality(items)
   items.each do |item|
-
-    if item.name != BRIE && item.name != BACKSTAGE_PASS
-      if item.quality > 0
-        if item.name != SULFURAS
-          update_item_quality(item, -1)
-        end
+    case item.name
+    when BRIE
+      update_item_quality(item, 1)
+    when BACKSTAGE_PASS
+      update_item_quality(item, 1)
+      if item.sell_in < 11
+        update_item_quality(item, 1)
+      end
+      if item.sell_in < 6
+        update_item_quality(item, 1)
       end
     else
-      if item.quality < 50
-        update_item_quality(item, 1)
-        if item.name == BACKSTAGE_PASS
-          if item.sell_in < 11
-            if item.quality < 50
-              update_item_quality(item, 1)
-            end
-          end
-          if item.sell_in < 6
-            if item.quality < 50
-              update_item_quality(item, 1)
-            end
-          end
-        end
-      end
+      update_item_quality(item, -1)
     end
+    decrease_item_sell_in_date(item)
+    update_quality_for_expired_item(item)
+  end
+end
 
-
-    if item.name != SULFURAS
-      decrease_item_sell_in_date(item)
-    end
-
-    if item.sell_in < 0
-      if item.name == BRIE
-        update_item_quality(item, 1)
-      elsif item.name == BACKSTAGE_PASS
-        update_item_quality(item, -item.quality)
-      elsif item.name == SULFURAS
-
-      else
-        update_item_quality(item, -1)
-      end
+def update_quality_for_expired_item(item)
+  if expired?(item)
+    if item.name == BRIE
+      update_item_quality(item, 1)
+    elsif item.name == BACKSTAGE_PASS
+      update_item_quality(item, -item.quality)
+    else
+      update_item_quality(item, -1)
     end
   end
 end
@@ -55,8 +42,16 @@ def update_item_quality(item, change_by)
 end
 
 def decrease_item_sell_in_date(item)
-  item.sell_in -= 1
+  if item.name != SULFURAS
+    item.sell_in -= 1
+  end
 end
+
+def expired?(item)
+  item.sell_in < 0 
+end
+
+
 # DO NOT CHANGE THINGS BELOW -----------------------------------------
 
 Item = Struct.new(:name, :sell_in, :quality)
